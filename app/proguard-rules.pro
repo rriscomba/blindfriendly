@@ -1,0 +1,4 @@
+-keep class com.google.mediapipe.** { *; }
+-keep class com.k2fsa.sherpa.** { *; }
+-dontwarn com.google.mediapipe.**
+-dontwarn com.k2fsa.sherpa.**
