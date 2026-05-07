@@ -74,6 +74,6 @@ dependencies {
     // MediaPipe Tasks GenAI (Gemma)
     implementation("com.google.mediapipe:tasks-genai:0.10.27")
 
-    // Sherpa-ONNX (Piper TTS engine)
-    implementation("com.k2-fsa:sherpa-onnx-android:1.11.5")
+    // Sherpa-ONNX (Piper TTS engine) — via JitPack, pre-built AAR from GitHub releases
+    implementation("com.github.k2-fsa:sherpa-onnx:v1.13.0")
 }
