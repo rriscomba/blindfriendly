@@ -36,6 +36,42 @@ jobs:
             "platforms;android-35" \
             "build-tools;35.0.0" || true
 
+      # Sherpa-ONNX no publica en Maven Central — descargamos el AAR desde GitHub Releases
+      - name: Download Sherpa-ONNX AAR (v1.11.5)
+        run: |
+          mkdir -p app/libs
+          echo "Consultando GitHub Releases..."
+          curl -s "https://api.github.com/repos/k2-fsa/sherpa-onnx/releases/tags/v1.11.5" \
+            > /tmp/release.json
+
+          # Buscar AAR arm64-v8a
+          DOWNLOAD_URL=$(jq -r '
+            .assets[]
+            | select(.name | test("(?i)arm64.*\\.aar|\\.aar.*arm64|android.*arm64.*\\.aar"))
+            | .browser_download_url
+          ' /tmp/release.json | head -1)
+
+          # Si no hay arm64 específico, intentar AAR genérico de Android
+          if [ -z "$DOWNLOAD_URL" ]; then
+            echo "No se encontró AAR arm64 específico, buscando AAR genérico..."
+            DOWNLOAD_URL=$(jq -r '
+              .assets[]
+              | select(.name | test("(?i)android.*\\.aar|\\.aar"))
+              | .browser_download_url
+            ' /tmp/release.json | head -1)
+          fi
+
+          if [ -z "$DOWNLOAD_URL" ]; then
+            echo "ERROR: No se encontró ningún AAR en los assets de la release v1.11.5"
+            echo "Assets disponibles:"
+            jq -r '.assets[].name' /tmp/release.json
+            exit 1
+          fi
+
+          echo "Descargando: $DOWNLOAD_URL"
+          curl -sL "$DOWNLOAD_URL" -o app/libs/sherpa-onnx.aar
+          echo "Descargado: $(du -sh app/libs/sherpa-onnx.aar)"
+
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:

@@ -1,0 +1,12 @@
+# AARs descargados en CI (no commitear — se descargan automáticamente)
+app/libs/*.aar
+
+# Build outputs
+app/build/
+build/
+.gradle/
+
+# Local config
+local.properties
+*.iml
+.idea/

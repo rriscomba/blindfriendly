@@ -74,6 +74,6 @@ dependencies {
     // MediaPipe Tasks GenAI (Gemma)
     implementation("com.google.mediapipe:tasks-genai:0.10.27")
 
-    // Sherpa-ONNX (Piper TTS engine) — solo el artefacto arm64-v8a, consistente con abiFilters
-    implementation("com.k2-fsa:sherpa-onnx-android-arm64-v8a:1.11.5")
+    // Sherpa-ONNX (Piper TTS engine) — AAR descargado desde GitHub Releases (ver CI workflow)
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
 }
