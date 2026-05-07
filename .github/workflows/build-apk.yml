@@ -5,7 +5,7 @@ on:
     branches: [main, "claude/**"]
   pull_request:
     branches: [main]
-  workflow_dispatch:          # permite correr manualmente desde GitHub UI
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,29 +21,48 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle 8.10
-        uses: gradle/actions/setup-gradle@v3
+      # Descarga Gradle 8.10 directamente y lo agrega al PATH
+      - name: Install Gradle 8.10
+        run: |
+          wget -q "https://services.gradle.org/distributions/gradle-8.10-bin.zip" -O /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /opt/gradle
+          echo "/opt/gradle/gradle-8.10/bin" >> $GITHUB_PATH
+
+      # Acepta todas las licencias del Android SDK
+      - name: Accept Android SDK licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      # Asegura que el SDK platform 35 y build-tools estén instalados
+      - name: Install Android SDK Platform 35
+        run: |
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            "platforms;android-35" \
+            "build-tools;35.0.0" || true
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
         with:
-          gradle-version: '8.10'
-          cache-read-only: false
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle.kts', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-
 
-      # Los assets .onnx son placeholders; el modelo Gemma se descarga en runtime.
-      # El APK de debug es funcional para instalar; solo falta el modelo en el celular.
       - name: Build debug APK
-        run: gradle :app:assembleDebug
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: blind-friend-debug-${{ github.run_number }}
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-  # Job opcional: APK de release firmado con keystore en secrets
+  # Job de release: solo en push a main con secrets configurados
   build-release:
     runs-on: ubuntu-latest
-    # Solo corre en pushes a main y si los secrets están configurados
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.KEYSTORE_BASE64 != ''
 
     steps:
       - name: Checkout
@@ -55,10 +74,29 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle 8.10
-        uses: gradle/actions/setup-gradle@v3
+      - name: Install Gradle 8.10
+        run: |
+          wget -q "https://services.gradle.org/distributions/gradle-8.10-bin.zip" -O /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /opt/gradle
+          echo "/opt/gradle/gradle-8.10/bin" >> $GITHUB_PATH
+
+      - name: Accept Android SDK licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      - name: Install Android SDK Platform 35
+        run: |
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            "platforms;android-35" \
+            "build-tools;35.0.0" || true
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
         with:
-          gradle-version: '8.10'
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle.kts', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-
 
       - name: Decode keystore
         run: |
@@ -71,7 +109,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          gradle :app:assembleRelease \
+          gradle :app:assembleRelease --no-daemon \
             -Pandroid.injected.signing.store.file=$KEYSTORE_PATH \
             -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
             -Pandroid.injected.signing.key.alias=$KEY_ALIAS \

@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import java.util.Locale
 
 class SpeechListener(private val context: Context) {
 
