@@ -31,6 +31,14 @@ jobs:
         id: build
         run: ./gradlew assembleDebug 2>&1 | tee build-output.log
 
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blindfriend-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
       - name: Save error log
         if: failure()
         run: |
