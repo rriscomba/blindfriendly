@@ -22,7 +22,7 @@ class GemmaInference(private val context: Context) {
 
     fun init() {
         val options = LlmInference.LlmInferenceOptions.builder()
-            .setModelPath(LlmConstants.MODEL_PATH)
+            .setModelPath(LlmConstants.modelPath(context))
             .setMaxTokens(LlmConstants.MAX_TOKENS)
             .setMaxNumImages(1)
             .setPreferredBackend(Backend.GPU) // falls back to CPU if unavailable

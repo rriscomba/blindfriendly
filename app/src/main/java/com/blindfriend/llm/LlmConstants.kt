@@ -1,8 +1,13 @@
 package com.blindfriend.llm
 
+import android.content.Context
+
 object LlmConstants {
-    // Path where the model is pushed via adb (see §11)
-    const val MODEL_PATH = "/data/local/tmp/llm/gemma4-e2b.task"
+    // Model is downloaded to internal storage by ModelDownloader
+    private const val MODEL_FILENAME = "gemma-4-E2B-it-litert-lm.task"
+
+    fun modelPath(context: Context): String =
+        "${context.filesDir}/llm/$MODEL_FILENAME"
 
     // Output budget — navigation prompts are short
     const val MAX_TOKENS = 256

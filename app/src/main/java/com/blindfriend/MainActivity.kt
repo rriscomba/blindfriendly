@@ -7,9 +7,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat
+import com.blindfriend.download.ModelDownloader
 import com.blindfriend.service.AssistantService
 import com.blindfriend.ui.HomeScreen
+import com.blindfriend.ui.SetupScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -36,9 +39,19 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { HomeScreen() }
 
-        if (requiredPermissions.all { ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED }) {
+        setContent {
+            var modelReady by remember { mutableStateOf(ModelDownloader.isModelReady(this)) }
+            if (modelReady) {
+                HomeScreen()
+            } else {
+                SetupScreen(onReady = { modelReady = true })
+            }
+        }
+
+        if (requiredPermissions.all {
+                ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+            }) {
             AssistantService.start(this)
         } else {
             permissionLauncher.launch(requiredPermissions)
