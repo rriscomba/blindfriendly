@@ -71,8 +71,9 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.4.1")
     implementation("androidx.camera:camera-view:1.4.1")
 
-    // MediaPipe Tasks GenAI (Gemma)
+    // MediaPipe Tasks GenAI (Gemma) + Vision (MPImage / BitmapImageBuilder)
     implementation("com.google.mediapipe:tasks-genai:0.10.27")
+    implementation("com.google.mediapipe:tasks-vision:0.10.27")
 
     // Sherpa-ONNX (Piper TTS engine) — via JitPack, pre-built AAR from GitHub releases
     implementation("com.github.k2-fsa:sherpa-onnx:v1.13.0")
